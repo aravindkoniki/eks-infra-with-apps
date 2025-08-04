@@ -7,3 +7,8 @@ variable "name" {
   description = "The name of the infrastructure"
   default     = "private-eks"
 }
+
+variable "eks_version" {
+  description = "The version of the EKS cluster"
+  default     = "1.29"
+}

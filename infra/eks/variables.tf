@@ -14,3 +14,8 @@ variable "private_subnet_ids" {
 variable "region" {
   description = "The AWS region to deploy the EKS cluster"
 }
+
+variable "eks_version" {
+  description = "The version of the EKS cluster"
+  default     = "1.29"
+}
