@@ -34,6 +34,7 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = false
+    security_group_ids      = [aws_security_group.eks_cluster_sg.id]
   }
 
   tags = {
@@ -41,20 +42,12 @@ resource "aws_eks_cluster" "this" {
   }
 }
 
-resource "aws_eks_addon" "coredns" {
-  cluster_name                = aws_eks_cluster.this.name
-  addon_name                  = "coredns"
-  resolve_conflicts_on_update = "OVERWRITE"
-}
+resource "aws_security_group" "eks_cluster_sg" {
+  name        = "${var.cluster_name}-eks-cluster-sg"
+  description = "Security group for EKS control plane"
+  vpc_id      = var.vpc_id
 
-resource "aws_eks_addon" "kube-proxy" {
-  cluster_name                = aws_eks_cluster.this.name
-  addon_name                  = "kube-proxy"
-  resolve_conflicts_on_update = "OVERWRITE"
-}
-
-resource "aws_eks_addon" "vpc-cni" {
-  cluster_name                = aws_eks_cluster.this.name
-  addon_name                  = "vpc-cni"
-  resolve_conflicts_on_update = "OVERWRITE"
+  tags = {
+    Name = "${var.cluster_name}-eks-cluster-sg"
+  }
 }

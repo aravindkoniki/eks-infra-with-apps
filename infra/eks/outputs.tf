@@ -13,3 +13,7 @@ output "eks_cluster_oidc_issuer_url" {
 output "eks_cluster_id" {
   value = aws_eks_cluster.this.id
 }
+
+output "cluster_security_group_id" {
+  value = aws_security_group.eks_cluster_sg.id
+}

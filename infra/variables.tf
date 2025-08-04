@@ -10,5 +10,5 @@ variable "name" {
 
 variable "eks_version" {
   description = "The version of the EKS cluster"
-  default     = "1.29"
+  default     = "1.32"
 }

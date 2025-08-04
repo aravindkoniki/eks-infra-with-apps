@@ -1,9 +1,13 @@
 data "aws_eks_cluster" "eks" {
-  name = var.name
+  provider   = aws.MY_NETWORKING
+  name       = var.name
+  depends_on = [module.eks_control_plane]
 }
 
 data "aws_eks_cluster_auth" "eks" {
-  name = var.name
+  provider   = aws.MY_NETWORKING
+  name       = var.name
+  depends_on = [module.eks_control_plane]
 }
 
 data "tls_certificate" "eks_oidc" {

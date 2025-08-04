@@ -20,3 +20,9 @@ variable "public_subnet_cidrs" {
   description = "List of CIDRs for public subnets (for NAT Gateways)"
   default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 }
+
+variable "subnet_tags" {
+  description = "Tags to apply to the subnets"
+  type        = map(string)
+  
+}

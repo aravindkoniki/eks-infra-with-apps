@@ -16,9 +16,9 @@ resource "aws_subnet" "private" {
   cidr_block              = var.private_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
-  tags = {
+  tags = merge(var.subnet_tags, {
     Name = "${var.name}-private-${count.index + 1}"
-  }
+  })
 }
 
 # Public subnets (for NAT Gateways only)
