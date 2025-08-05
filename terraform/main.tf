@@ -1,0 +1,63 @@
+module "vpc" {
+  providers = {
+    aws = aws.MY_NETWORKING
+  }
+  source = "./vpc"
+  name   = var.name
+  region = var.region
+  subnet_tags = {
+    "kubernetes.io/cluster/${var.name}" = "shared",
+    "kubernetes.io/role/internal-elb"   = "1"
+  }
+}
+
+module "eks_control_plane" {
+  providers = {
+    aws = aws.MY_NETWORKING
+  }
+  source                  = "./eks"
+  cluster_name            = var.name
+  vpc_id                  = module.vpc.vpc_id
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  eks_version             = var.eks_version
+  endpoint_public_access  = var.endpoint_public_access
+  endpoint_private_access = false
+}
+
+module "eks_node_group" {
+  providers = {
+    aws = aws.MY_NETWORKING
+  }
+  source             = "./nodegroup"
+  cluster_name       = module.eks_control_plane.cluster_name
+  eks_version        = var.eks_version
+  private_subnet_ids = module.vpc.private_subnet_ids
+  desired_size       = 3
+  min_size           = 3
+  max_size           = 6
+  instance_types     = ["t3.medium"]
+  vpc_id             = module.vpc.vpc_id
+}
+
+
+resource "kubernetes_config_map_v1" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    mapRoles = yamlencode([
+      {
+        rolearn  = module.eks_node_group.node_role_arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      },
+      {
+        rolearn  = module.eks_control_plane.cluster_role_arn
+        username = "admin"
+        groups   = ["system:masters"]
+      }
+    ])
+  }
+}
