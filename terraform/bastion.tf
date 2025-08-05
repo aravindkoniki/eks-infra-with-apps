@@ -1,5 +1,6 @@
 # IAM Role for Bastion
 resource "aws_iam_role" "bastion_role" {
+  count    = var.endpoint_public_access == false ? 1 : 0
   provider = aws.MY_NETWORKING
   name     = "bastion-eks-admin-role"
 
@@ -19,6 +20,7 @@ resource "aws_iam_role" "bastion_role" {
 
 # Attach EKS Admin permissions
 resource "aws_iam_role_policy_attachment" "full_access" {
+  count      = var.endpoint_public_access == false ? 1 : 0
   provider   = aws.MY_NETWORKING
   role       = aws_iam_role.bastion_role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
@@ -26,15 +28,15 @@ resource "aws_iam_role_policy_attachment" "full_access" {
 
 # Instance Profile
 resource "aws_iam_instance_profile" "bastion_profile" {
+  count    = var.endpoint_public_access == false ? 1 : 0
   provider = aws.MY_NETWORKING
   name     = "bastion-eks-admin-profile"
   role     = aws_iam_role.bastion_role.name
 }
 
-
-
 # Security group for SSH access
 resource "aws_security_group" "bastion_sg" {
+  count       = var.endpoint_public_access == false ? 1 : 0
   provider    = aws.MY_NETWORKING
   name        = "bastion-sg"
   description = "Allow SSH access to bastion host"
@@ -62,6 +64,7 @@ resource "aws_security_group" "bastion_sg" {
 
 # Bastion EC2 instance
 resource "aws_instance" "bastion" {
+  count                       = var.endpoint_public_access == false ? 1 : 0
   provider                    = aws.MY_NETWORKING
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = "t3.micro"

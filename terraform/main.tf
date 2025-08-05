@@ -15,11 +15,13 @@ module "eks_control_plane" {
   providers = {
     aws = aws.MY_NETWORKING
   }
-  source             = "./eks"
-  cluster_name       = var.name
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  eks_version        = var.eks_version
+  source                  = "./eks"
+  cluster_name            = var.name
+  vpc_id                  = module.vpc.vpc_id
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  eks_version             = var.eks_version
+  endpoint_public_access  = var.endpoint_public_access
+  endpoint_private_access = false
 }
 
 module "eks_node_group" {
@@ -37,13 +39,25 @@ module "eks_node_group" {
   vpc_id             = module.vpc.vpc_id
 }
 
-# # this cant be run while on a fully private cluster
-# # cluster API endpoint is not accessible
-# module "aws_auth" {
-#   source                        = "./aws-auth"
-#   cluster_endpoint              = module.eks_control_plane.cluster_endpoint
-#   cluster_certificate_authority = module.eks_control_plane.cluster_certificate_authority
-#   token                         = data.aws_eks_cluster_auth.this.token
-#   node_role_arn                 = module.eks_node_group.node_role_arn
-#   depends_on                    = [module.eks_node_group]
-# }
+
+resource "kubernetes_config_map_v1" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    mapRoles = yamlencode([
+      {
+        rolearn  = module.eks_node_group.node_role_arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      },
+      {
+        rolearn  = module.eks_control_plane.cluster_role_arn
+        username = "admin"
+        groups   = ["system:masters"]
+      }
+    ])
+  }
+}

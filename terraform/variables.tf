@@ -12,3 +12,9 @@ variable "eks_version" {
   description = "The version of the EKS cluster"
   default     = "1.32"
 }
+
+variable "endpoint_public_access" {
+  description = "Enable public access to the EKS cluster endpoint"
+  type        = bool
+  default     = true
+}
