@@ -6,29 +6,37 @@ resource "helm_release" "nginx_ingress" {
   chart            = "ingress-nginx"
   namespace        = var.nginx_ingress_namespace
   create_namespace = true
+  timeout          = 600
 
-  # Service Type = LoadBalancer (AWS NLB)
+  # Service type: NLB
   set {
     name  = "controller.service.type"
     value = "LoadBalancer"
   }
 
-  # AWS NLB type
+  # NLB type
   set {
     name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
-    value = "nlb"
+    value = "\"nlb\""
   }
 
-  # Internet-facing
+  # Internet-facing scheme
   set {
     name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
-    value = "internet-facing"
+    value = "\"internet-facing\""
   }
 
-  # Attach NLB to PUBLIC subnets
+  # Pass comma-separated subnet IDs as a quoted string
   set {
     name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-subnets"
-    value = join(",", var.public_subnet_ids)
+    value = "\"${join("\\,", var.public_subnet_ids)}\""
+    type  = "auto"
+  }
+
+  # Optional: Cross-zone load balancing
+  set {
+    name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-cross-zone-load-balancing-enabled"
+    value = "true"
   }
 }
 

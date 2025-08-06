@@ -1,8 +1,3 @@
-output "ingress_controller_nlb" {
-  description = "NLB hostname for the NGINX ingress controller"
-  value       = helm_release.nginx_ingress.status["loadBalancer"]["ingress"][0]["hostname"]
-}
-
 output "nlb_hostname" {
-  value = helm_release.nginx_ingress.status["loadBalancer"]["ingress"][0]["hostname"]
+  value = data.kubernetes_service.nginx_ingress.status[0].load_balancer[0].ingress[0].hostname
 }

@@ -1,5 +1,5 @@
 ## run the below command to update kubeconfig
-## aws eks update-kubeconfig --region <region> --name <cluster_name> --profile <aws_profile>
+## aws eks update-kubeconfig --name private-eks --region eu-west-1 --profile MY_NETWORKING
 
 # provider "helm" {
 #   kubernetes {
@@ -13,14 +13,17 @@
 
 
 ## dynamic provider configuration for EKS cluster to avoid running `aws eks update-kubeconfig` command
-# Kubernetes Provider
+# Helm Provider (uses same auth as Kubernetes)
+
+
+# Kubernetes provider
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.this.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.this.token
 }
 
-# Helm Provider
+# Helm provider (v2+)
 provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.this.endpoint

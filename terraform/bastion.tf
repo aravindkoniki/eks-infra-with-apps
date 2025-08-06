@@ -22,7 +22,7 @@ resource "aws_iam_role" "bastion_role" {
 resource "aws_iam_role_policy_attachment" "full_access" {
   count      = var.endpoint_public_access == false ? 1 : 0
   provider   = aws.MY_NETWORKING
-  role       = aws_iam_role.bastion_role.name
+  role       = aws_iam_role.bastion_role[0].name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
@@ -31,7 +31,7 @@ resource "aws_iam_instance_profile" "bastion_profile" {
   count    = var.endpoint_public_access == false ? 1 : 0
   provider = aws.MY_NETWORKING
   name     = "bastion-eks-admin-profile"
-  role     = aws_iam_role.bastion_role.name
+  role     = aws_iam_role.bastion_role[0].name
 }
 
 # Security group for SSH access
@@ -68,9 +68,9 @@ resource "aws_instance" "bastion" {
   provider                    = aws.MY_NETWORKING
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = "t3.micro"
-  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.bastion_profile[0].name
   subnet_id                   = module.vpc.public_subnet_ids[0]
-  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
+  vpc_security_group_ids      = [aws_security_group.bastion_sg[0].id]
   key_name                    = "networking-account-keypair-iteland-01"
   associate_public_ip_address = true
   tags = {
