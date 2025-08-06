@@ -4,7 +4,7 @@ resource "helm_release" "nginx_ingress" {
   name             = "ingress-nginx"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
-  namespace        = "ingress-nginx"
+  namespace        = var.nginx_ingress_namespace
   create_namespace = true
 
   # Service Type = LoadBalancer (AWS NLB)
@@ -32,17 +32,8 @@ resource "helm_release" "nginx_ingress" {
   }
 }
 
-
-# Load and apply all manifests automatically
-locals {
-  manifest_files = fileset("${path.module}/manifests", "**/*.yaml")
-}
-
 resource "kubernetes_manifest" "app_manifests" {
   for_each = { for f in local.manifest_files : f => yamldecode(file("${path.module}/manifests/${f}")) }
   manifest = each.value
 }
 
-output "nlb_hostname" {
-  value = helm_release.nginx_ingress.status["loadBalancer"]["ingress"][0]["hostname"]
-}

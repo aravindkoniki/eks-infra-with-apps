@@ -4,10 +4,10 @@ metadata:
   name: app2-ingress
   namespace: app2
   annotations:
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: nginx
 spec:
   rules:
-    - host: app2.example.com
+    - host: app2.cloudcraftlab.work
       http:
         paths:
           - path: /

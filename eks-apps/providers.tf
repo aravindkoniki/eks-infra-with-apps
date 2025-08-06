@@ -28,3 +28,9 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.this.token
   }
 }
+
+provider "aws" {
+  region  = var.region
+  profile = "MY_NETWORKING"
+  alias   = "MY_NETWORKING"
+}

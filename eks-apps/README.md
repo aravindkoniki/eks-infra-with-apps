@@ -21,7 +21,7 @@ This setup deploys:
           |
           v
 [ Route53 DNS ]
-  (app1.example.com / app2.example.com)
+  (app1.cloudcraftlab.work / app2.cloudcraftlab.work)
           |
           v
 [ AWS NLB (Public Subnets) ]
@@ -121,15 +121,15 @@ ingress_controller_nlb = "a1b2c3d4e5f6g7h8.elb.amazonaws.com"
 
 In Route53, create A records:
 
-app1.example.com → NLB DNS
-app2.example.com → NLB DNS
+app1.cloudcraftlab.work → NLB DNS
+app2.cloudcraftlab.work → NLB DNS
 
 
 ⸻
 
 6️⃣ Access Applications
-	•	http://app1.example.com
-	•	http://app2.example.com
+	•	http://app1.cloudcraftlab.work
+	•	http://app2.cloudcraftlab.work
 
 ⸻
 
