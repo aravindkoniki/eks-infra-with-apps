@@ -9,7 +9,7 @@ resource "helm_release" "nginx_ingress" {
   create_namespace = true
 
   values = [
-    templatefile("${path.module}/nginx-values.tpl.yaml", {
+    templatefile("${path.module}/manifests/nginx/nginx-values.tpl.yaml", {
       subnet_ids = join(",", var.public_subnet_ids)
     })
   ]
