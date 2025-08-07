@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UI App 1</title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+  <h1>Welcome to UI App 1</h1>
+  <p>This is running on hostname:</p>
+  <h2 id="hostname">Loading...</h2>
+
+  <script>
+    fetch('/hostname')
+      .then(res => res.text())
+      .then(host => {
+        document.getElementById('hostname').textContent = host;
+      });
+  </script>
+</body>
+</html>
