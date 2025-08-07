@@ -1,8 +1,3 @@
-Here’s your README.md in Markdown format with an ASCII traffic flow diagram that will render well on GitHub or any Markdown viewer.
-
-⸻
-
-
 # EKS Apps — NGINX Ingress with AWS NLB & Multi-Namespace Applications
 
 This setup deploys:
@@ -42,34 +37,9 @@ This setup deploys:
   (app1 namespace / app2 namespace)
 
 
-⸻
-
-📂 Folder Structure
-
-eks-apps/
-├── main.tf              # Terraform code to deploy NGINX ingress & apply manifests
-├── variables.tf         # Variables for public subnets, kubeconfig path
-├── outputs.tf           # Output for NLB DNS name
-└── manifests/
-    ├── namespaces/
-    │   ├── app1-namespace.yaml
-    │   └── app2-namespace.yaml
-    ├── deployments/
-    │   ├── app1-deployment.yaml
-    │   └── app2-deployment.yaml
-    ├── services/
-    │   ├── app1-service.yaml
-    │   └── app2-service.yaml
-    └── ingress/
-        ├── app1-ingress.yaml
-        └── app2-ingress.yaml
-
-
-⸻
-
 ⚙️ Terraform Usage
 
-1️⃣ Prerequisites
+Prerequisites
 	•	A running EKS cluster with:
 	•	Worker nodes in private subnets
 	•	At least one public subnet per AZ for the NLB
@@ -78,22 +48,7 @@ eks-apps/
 
 ⸻
 
-2️⃣ Variables
-
-In terraform.tfvars:
-
-public_subnet_ids = [
-  "subnet-0a1b2c3d4e5f6g7h8",
-  "subnet-1a2b3c4d5e6f7g8h9",
-  "subnet-2a3b4c5d6e7f8g9h0"
-]
-
-kubeconfig_path = "~/.kube/config"
-
-
-⸻
-
-3️⃣ Deploy
+Deploy
 
 cd eks-apps
 terraform init
@@ -106,35 +61,139 @@ Terraform will:
 
 ⸻
 
-4️⃣ Get the NLB DNS Name
+🧠 Kubernetes Cluster Debug & Inspection Cheat Sheet
 
-terraform output ingress_controller_nlb
-
-Example:
-
-ingress_controller_nlb = "a1b2c3d4e5f6g7h8.elb.amazonaws.com"
-
+This guide provides essential kubectl and helm commands to inspect and manage key components in your AWS EKS cluster, including nodes, pods, services, ingress, controllers, and load balancers.
 
 ⸻
 
-5️⃣ Configure Route53
-
-In Route53, create A records:
-
-app1.cloudcraftlab.work → NLB DNS
-app2.cloudcraftlab.work → NLB DNS
-
-
-⸻
-
-6️⃣ Access Applications
-	•	http://app1.cloudcraftlab.work
-	•	http://app2.cloudcraftlab.work
+📋 Table of Contents
+	•	Cluster Info
+	•	Nodes
+	•	Pods
+	•	Controllers (Deployments, ReplicaSets, DaemonSets)
+	•	Services
+	•	Ingress
+	•	Helm Releases
+	•	AWS Load Balancer Controller
+	•	Logs & Troubleshooting
+	•	Extras
 
 ⸻
 
-🛡 Key Notes
-	•	Public Subnets for NLB — Required for internet-facing access; nodes can still remain private.
-	•	Ingress Rules — Handle routing based on hostname or path.
-	•	Security — Limit inbound traffic using Security Groups & Route53.
-	•	Scalability — Add more namespaces and deployments for new applications.
+📡 Cluster Info
+
+```sh
+kubectl config current-context           # Show current context (EKS cluster)
+kubectl version --short                 # Client and server versions
+kubectl cluster-info                    # Get cluster endpoints
+kubectl get namespaces                  # List all namespaces
+```
+
+⸻
+
+🧱 Nodes
+
+```sh
+kubectl get nodes -o wide               # List all worker nodes with details
+kubectl describe node <node-name>      # Detailed info about a specific node
+```
+
+⸻
+
+🚀 Pods
+
+```sh
+kubectl get pods -A                     # All pods in all namespaces
+kubectl get pods -n <namespace> -o wide# Pods in a specific namespace
+kubectl describe pod <pod-name> -n <namespace>
+kubectl logs <pod-name> -n <namespace> # Logs of a pod
+kubectl exec -it <pod-name> -n <namespace> -- /bin/sh
+```
+
+⸻
+
+⚙️ Controllers
+
+🔹 Deployments
+
+```sh
+kubectl get deployments -A
+kubectl describe deployment <name> -n <namespace>
+```
+
+🔹 ReplicaSets
+
+```sh
+kubectl get rs -A
+```
+
+🔹 DaemonSets (e.g., NGINX Ingress Controller)
+
+```sh
+kubectl get daemonset -A
+kubectl describe daemonset <name> -n <namespace>
+```
+
+⸻
+
+🌐 Services
+
+```sh
+kubectl get svc -A                      # List all services
+kubectl describe svc <name> -n <namespace>
+kubectl get endpoints -n <namespace>   # Show service endpoints
+```
+
+⸻
+
+🌍 Ingress
+
+```sh
+kubectl get ingress -A                 # List all ingress rules
+kubectl describe ingress <name> -n <namespace>
+```
+
+⸻
+
+📦 Helm Releases
+
+```sh
+helm list -A                           # All Helm releases
+helm get values <release> -n <namespace>        # View configured values
+helm status <release> -n <namespace>            # Status of a Helm release
+```
+
+⸻
+
+🏗️ AWS Load Balancer Controller
+
+```sh
+kubectl get deployment -n kube-system                 # Check controller exists
+kubectl logs -f deployment/aws-load-balancer-controller -n kube-system
+```
+
+⸻
+
+🛠 Logs & Troubleshooting
+
+```sh
+kubectl logs <pod-name> -n <namespace>               # Pod logs
+kubectl describe <resource> <name> -n <namespace>    # Describe any resource
+kubectl get events -A --sort-by='.metadata.creationTimestamp'
+```
+
+⸻
+
+🧹 Extras & Maintenance
+
+```sh
+kubectl delete pod <name> -n <namespace>             # Force restart a pod
+kubectl rollout restart deployment <name> -n <namespace> # Restart deployment
+kubectl get all -n <namespace>                       # All resources in a namespace
+kubectl get svc,ingress,pods -n <namespace>          # Key components in one line
+```
+
+⸻
+
+![alt text](image.png)
