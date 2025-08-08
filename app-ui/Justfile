@@ -1,0 +1,56 @@
+# Variables
+AWS_REGION := "eu-west-1"
+AWS_ACCOUNT_ID := 'aws sts get-caller-identity --query Account --output text'
+ECR_REPO_UI_APP1 := "{{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com/ui-app1"
+ECR_REPO_UI_APP2 := "{{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com/ui-app2"
+
+# Login to AWS ECR
+login:
+	@echo "Logging in to AWS ECR..."
+	aws ecr get-login-password --region {{AWS_REGION}} | docker login --username AWS --password-stdin {{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com
+
+# Build images
+build-ui-app1:
+	@echo "Building ui-app1..."
+	docker build -t ui-app1:latest ./ui-app1
+
+build-ui-app2:
+	@echo "Building ui-app2..."
+	docker build -t ui-app2:latest ./ui-app2
+
+# Test locally
+test-ui-app1:
+	docker run -d --rm -p 8081:8080 --name ui-app1 ui-app1:latest
+	@echo "ui-app1 running at http://localhost:8081"
+
+test-ui-app2:
+	docker run -d --rm -p 8082:8080 --name ui-app2 ui-app2:latest
+	@echo "ui-app2 running at http://localhost:8082"
+
+# Open in browser (Mac only)
+open-ui-app1:
+	open http://localhost:8081
+
+open-ui-app2:
+	open http://localhost:8082
+
+# Curl endpoint
+curl-ui-app1:
+	curl -i http://localhost:8081
+
+curl-ui-app2:
+	curl -i http://localhost:8082
+
+# Tag and Push to ECR
+push-ui-app1: login build-ui-app1
+	@echo "Pushing ui-app1 to ECR..."
+	docker tag ui-app1:latest {{ECR_REPO_UI_APP1}}:latest
+	docker push {{ECR_REPO_UI_APP1}}:latest
+
+push-ui-app2: login build-ui-app2
+	@echo "Pushing ui-app2 to ECR..."
+	docker tag ui-app2:latest {{ECR_REPO_UI_APP2}}:latest
+	docker push {{ECR_REPO_UI_APP2}}:latest
+
+# Build & Push both
+push-all: push-ui-app1 push-ui-app2
