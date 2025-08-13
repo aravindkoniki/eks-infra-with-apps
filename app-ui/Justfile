@@ -1,13 +1,43 @@
 # Variables
 AWS_REGION := "eu-west-1"
-AWS_ACCOUNT_ID := 'aws sts get-caller-identity --query Account --output text'
-ECR_REPO_UI_APP1 := "{{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com/ui-app1"
-ECR_REPO_UI_APP2 := "{{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com/ui-app2"
+AWS_ACCOUNT_ID := 'aws sts get-caller-identity --query Account --output text --profile MY_NETWORKING'
+
+# Create ECR repositories and get their URIs
+create-ecr:
+	@echo "Creating ECR repositories..."
+	@echo "Creating ui-app1 repository..."
+	aws ecr create-repository --repository-name ui-app1 --region {{AWS_REGION}} --image-scanning-configuration scanOnPush=true --profile MY_NETWORKING || echo "ui-app1 repository already exists"
+	@echo "Creating ui-app2 repository..."
+	aws ecr create-repository --repository-name ui-app2 --region {{AWS_REGION}} --image-scanning-configuration scanOnPush=true --profile MY_NETWORKING || echo "ui-app2 repository already exists"
+	@echo "ECR repositories created successfully!"
+	@echo ""
+	@echo "Repository URIs:"
+	@aws ecr describe-repositories --repository-names ui-app1 ui-app2 --region {{AWS_REGION}} --query 'repositories[].{Name:repositoryName,URI:repositoryUri}' --output table --profile MY_NETWORKING
+
+# List ECR repositories
+list-ecr:
+	@echo "Listing ECR repositories..."
+	aws ecr describe-repositories --region {{AWS_REGION}} --query 'repositories[?contains(repositoryName, 'ui-app')].{Name:repositoryName,URI:repositoryUri,Created:createdAt}' --output table --profile MY_NETWORKING
+
+# Get ECR repository URIs
+get-ecr-uris:
+	@echo "ECR Repository URIs:"
+	@printf "ui-app1: " && (aws ecr describe-repositories --repository-names ui-app1 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING 2>/dev/null || echo 'Repository not found')
+	@printf "ui-app2: " && (aws ecr describe-repositories --repository-names ui-app2 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING 2>/dev/null || echo 'Repository not found')
+
+# Delete ECR repositories (use with caution!)
+delete-ecr:
+	@echo "Deleting ECR repositories..."
+	@echo "This will delete all images in the repositories!"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	aws ecr delete-repository --repository-name ui-app1 --region {{AWS_REGION}} --force --profile MY_NETWORKING || echo "ui-app1 repository doesn't exist"
+	aws ecr delete-repository --repository-name ui-app2 --region {{AWS_REGION}} --force --profile MY_NETWORKING || echo "ui-app2 repository doesn't exist"
+	@echo "ECR repositories deleted!"
 
 # Login to AWS ECR
 login:
 	@echo "Logging in to AWS ECR..."
-	aws ecr get-login-password --region {{AWS_REGION}} | docker login --username AWS --password-stdin {{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com
+	aws ecr get-login-password --region {{AWS_REGION}} --profile MY_NETWORKING | docker login --username AWS --password-stdin {{AWS_ACCOUNT_ID}}.dkr.ecr.{{AWS_REGION}}.amazonaws.com
 
 # Build images
 build-ui-app1:
@@ -63,15 +93,19 @@ curl-hostname-ui-app2:
 	curl http://localhost:3001/hostname
 
 # Tag and Push to ECR
-push-ui-app1: login build-ui-app1
+push-ui-app1: create-ecr login build-ui-app1
 	@echo "Pushing ui-app1 to ECR..."
-	docker tag ui-app1:latest {{ECR_REPO_UI_APP1}}:latest
-	docker push {{ECR_REPO_UI_APP1}}:latest
+	@ECR_URI=$$(aws ecr describe-repositories --repository-names ui-app1 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING) && \
+	docker tag ui-app1:latest $$ECR_URI:latest && \
+	docker push $$ECR_URI:latest && \
+	echo "Successfully pushed to $$ECR_URI:latest"
 
-push-ui-app2: login build-ui-app2
+push-ui-app2: create-ecr login build-ui-app2
 	@echo "Pushing ui-app2 to ECR..."
-	docker tag ui-app2:latest {{ECR_REPO_UI_APP2}}:latest
-	docker push {{ECR_REPO_UI_APP2}}:latest
+	@ECR_URI=$$(aws ecr describe-repositories --repository-names ui-app2 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING) && \
+	docker tag ui-app2:latest $$ECR_URI:latest && \
+	docker push $$ECR_URI:latest && \
+	echo "Successfully pushed to $$ECR_URI:latest"
 
 # Build & Push both
 push-all: push-ui-app1 push-ui-app2
@@ -112,6 +146,11 @@ dev: build-all test-all
 # Help
 help:
 	@echo "Available commands:"
+	@echo "  create-ecr        - Create ECR repositories for ui-app1 and ui-app2"
+	@echo "  list-ecr          - List ECR repositories"
+	@echo "  get-ecr-uris      - Get ECR repository URIs"
+	@echo "  delete-ecr        - Delete ECR repositories (with confirmation)"
+	@echo "  login             - Login to AWS ECR"
 	@echo "  build-ui-app1     - Build ui-app1 Docker image"
 	@echo "  build-ui-app2     - Build ui-app2 Docker image"
 	@echo "  build-all         - Build both images"
