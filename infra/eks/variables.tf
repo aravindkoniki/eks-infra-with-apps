@@ -29,5 +29,10 @@ variable "endpoint_private_access" {
   description = "Enable private access to the EKS cluster endpoint"
   type        = bool
   default     = true
-  
+
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
 }

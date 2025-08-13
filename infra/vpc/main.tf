@@ -4,9 +4,9 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = {
+  tags = merge({
     Name = "${var.name}-vpc"
-  }
+  }, var.tags)
 }
 
 # Private subnets (for EKS control plane & worker nodes)
@@ -18,7 +18,7 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
   tags = merge(var.subnet_tags, {
     Name = "${var.name}-private-${count.index + 1}"
-  })
+  }, var.tags)
 }
 
 # Public subnets (for NAT Gateways only)
@@ -28,23 +28,24 @@ resource "aws_subnet" "public" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  tags = {
+  tags = merge({
     Name = "${var.name}-public-${count.index + 1}"
-  }
+  }, var.tags)
 }
 
 # Internet Gateway for NAT reachability
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags = {
+  tags = merge({
     Name = "${var.name}-igw"
-  }
+  }, var.tags)
 }
 
 # EIPs for NAT Gateways
 resource "aws_eip" "nat" {
   count  = length(var.public_subnet_cidrs)
   domain = "vpc"
+  tags   = var.tags
 }
 
 # NAT Gateways
@@ -52,17 +53,17 @@ resource "aws_nat_gateway" "nat" {
   count         = length(var.public_subnet_cidrs)
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
-  tags = {
+  tags = merge({
     Name = "${var.name}-nat-${count.index + 1}"
-  }
+  }, var.tags)
 }
 
 # Public route table & associations
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
-  tags = {
+  tags = merge({
     Name = "${var.name}-public-rt"
-  }
+  }, var.tags)
 }
 
 resource "aws_route" "public_internet_access" {
@@ -81,9 +82,9 @@ resource "aws_route_table_association" "public" {
 resource "aws_route_table" "private" {
   count  = length(var.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
-  tags = {
+  tags = merge({
     Name = "${var.name}-private-rt-${count.index + 1}"
-  }
+  }, var.tags)
 }
 
 resource "aws_route" "private_nat_gateway" {

@@ -12,6 +12,9 @@ resource "aws_iam_role" "node_role" {
       Action = "sts:AssumeRole"
     }]
   })
+  tags = merge({
+    Name = "${var.cluster_name}-${var.node_group_name}-role"
+  }, var.tags)
 }
 
 resource "aws_iam_role_policy_attachment" "node_policies" {

@@ -11,6 +11,7 @@ resource "aws_iam_role" "eks_cluster_role" {
       Action = "sts:AssumeRole"
     }]
   })
+  tags = merge({ "Name" = "${var.cluster_name}-cluster-role" }, var.tags)
 }
 
 resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSClusterPolicy" {

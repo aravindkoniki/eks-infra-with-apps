@@ -57,9 +57,9 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags = merge({
     Name = "bastion-sg"
-  }
+  }, var.tags)
 }
 
 # Bastion EC2 instance
@@ -73,7 +73,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion_sg[0].id]
   key_name                    = "networking-account-keypair-iteland-01"
   associate_public_ip_address = true
-  tags = {
+  tags = merge({
     Name = "bastion-host"
-  }
+  }, var.tags)
 }

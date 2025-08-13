@@ -24,9 +24,9 @@ resource "aws_security_group" "vpc_endpoints" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-vpc-endpoints"
-  }
+  }, var.tags)
 }
 
 # Interface VPC Endpoint for ECR API (control plane)
@@ -43,7 +43,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "ecr:GetAuthorizationToken",
@@ -59,9 +59,9 @@ resource "aws_vpc_endpoint" "ecr_api" {
     ]
   })
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-ecr-api-endpoint"
-  }
+  }, var.tags)
 }
 
 # Interface VPC Endpoint for ECR DKR (data plane - image layers)
@@ -78,7 +78,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "ecr:BatchGetImage",
@@ -89,9 +89,9 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
     ]
   })
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-ecr-dkr-endpoint"
-  }
+  }, var.tags)
 }
 
 # Gateway VPC Endpoint for S3 (ECR stores image layers in S3)
@@ -106,7 +106,7 @@ resource "aws_vpc_endpoint" "s3" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "s3:GetObject",
@@ -120,7 +120,7 @@ resource "aws_vpc_endpoint" "s3" {
         ]
       },
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "s3:GetObject"
@@ -132,9 +132,9 @@ resource "aws_vpc_endpoint" "s3" {
     ]
   })
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-s3-endpoint"
-  }
+  }, var.tags)
 }
 
 # Optional: VPC Endpoint for CloudWatch Logs (if you want to send logs without internet)
@@ -151,7 +151,7 @@ resource "aws_vpc_endpoint" "logs" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "logs:CreateLogGroup",
@@ -165,9 +165,10 @@ resource "aws_vpc_endpoint" "logs" {
     ]
   })
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-logs-endpoint"
-  }
+  }, var.tags)
+
 }
 
 # Optional: VPC Endpoint for STS (Security Token Service)
@@ -184,7 +185,7 @@ resource "aws_vpc_endpoint" "sts" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "sts:AssumeRole",
@@ -196,7 +197,7 @@ resource "aws_vpc_endpoint" "sts" {
     ]
   })
 
-  tags = {
+  tags = merge({
     Name = "${var.name}-sts-endpoint"
-  }
+  }, var.tags)
 }

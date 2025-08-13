@@ -26,8 +26,48 @@ output "vpc_endpoints_dns_entries" {
     sts     = aws_vpc_endpoint.sts.dns_entry
   }
 }
- 
+
 output "vpc_endpoints_security_group_id" {
   description = "Security group ID for VPC endpoints"
   value       = aws_security_group.vpc_endpoints.id
+}
+
+# ECR Repository Outputs
+output "ecr_repositories" {
+  description = "ECR repository details"
+  value = {
+    for k, v in aws_ecr_repository.repositories : k => {
+      arn            = v.arn
+      registry_id    = v.registry_id
+      repository_url = v.repository_url
+      name           = v.name
+    }
+  }
+}
+
+output "ecr_repository_urls" {
+  description = "Map of repository names to URLs for easy access"
+  value = {
+    for k, v in aws_ecr_repository.repositories : k => v.repository_url
+  }
+}
+
+# Outputs for ECR repositories
+output "ecr_repositories" {
+  description = "ECR repository details"
+  value = {
+    for k, v in aws_ecr_repository.repositories : k => {
+      arn            = v.arn
+      registry_id    = v.registry_id
+      repository_url = v.repository_url
+      name           = v.name
+    }
+  }
+}
+
+output "ecr_repository_urls" {
+  description = "Map of repository names to URLs"
+  value = {
+    for k, v in aws_ecr_repository.repositories : k => v.repository_url
+  }
 }
