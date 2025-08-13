@@ -20,26 +20,47 @@ build-ui-app2:
 
 # Test locally
 test-ui-app1:
-	docker run -d --rm -p 8081:8080 --name ui-app1 ui-app1:latest
-	@echo "ui-app1 running at http://localhost:8081"
+	docker run -d --rm -p 3000:80 --name ui-app1-test ui-app1:latest
+	@echo "ui-app1 running at http://localhost:3000"
 
 test-ui-app2:
-	docker run -d --rm -p 8082:8080 --name ui-app2 ui-app2:latest
-	@echo "ui-app2 running at http://localhost:8082"
+	docker run -d --rm -p 3001:80 --name ui-app2-test ui-app2:latest
+	@echo "ui-app2 running at http://localhost:3001"
+
+# Test both apps
+test-all: build-ui-app1 build-ui-app2
+	@echo "Starting both applications..."
+	docker run -d --rm -p 3000:80 --name ui-app1-test ui-app1:latest
+	docker run -d --rm -p 3001:80 --name ui-app2-test ui-app2:latest
+	@echo "ui-app1 running at http://localhost:3000"
+	@echo "ui-app2 running at http://localhost:3001"
+
+# Stop test containers
+stop-test:
+	@echo "Stopping test containers..."
+	-docker stop ui-app1-test ui-app2-test
+	@echo "Test containers stopped"
 
 # Open in browser (Mac only)
 open-ui-app1:
-	open http://localhost:8081
+	open http://localhost:3000
 
 open-ui-app2:
-	open http://localhost:8082
+	open http://localhost:3001
 
-# Curl endpoint
+# Curl endpoints
 curl-ui-app1:
-	curl -i http://localhost:8081
+	curl -i http://localhost:3000
 
 curl-ui-app2:
-	curl -i http://localhost:8082
+	curl -i http://localhost:3001
+
+# Test hostname endpoints
+curl-hostname-ui-app1:
+	curl http://localhost:3000/hostname
+
+curl-hostname-ui-app2:
+	curl http://localhost:3001/hostname
 
 # Tag and Push to ECR
 push-ui-app1: login build-ui-app1
@@ -54,3 +75,56 @@ push-ui-app2: login build-ui-app2
 
 # Build & Push both
 push-all: push-ui-app1 push-ui-app2
+
+# Build both images
+build-all: build-ui-app1 build-ui-app2
+
+# Clean up local images
+clean:
+	@echo "Cleaning up local images..."
+	-docker rmi ui-app1:latest ui-app2:latest
+	@echo "Local images cleaned"
+
+# Remove all Docker images (including unused ones)
+clean-all:
+	@echo "Removing all Docker images..."
+	-docker image prune -a -f
+	@echo "All unused Docker images removed"
+
+# Show running containers
+ps:
+	docker ps --filter "name=ui-app"
+
+# Show logs for test containers
+logs-ui-app1:
+	docker logs ui-app1-test
+
+logs-ui-app2:
+	docker logs ui-app2-test
+
+# Complete local development workflow
+dev: build-all test-all
+	@echo "Development environment ready!"
+	@echo "ui-app1: http://localhost:3000"
+	@echo "ui-app2: http://localhost:3001"
+	@echo "Run 'just stop-test' to stop containers"
+
+# Help
+help:
+	@echo "Available commands:"
+	@echo "  build-ui-app1     - Build ui-app1 Docker image"
+	@echo "  build-ui-app2     - Build ui-app2 Docker image"
+	@echo "  build-all         - Build both images"
+	@echo "  test-ui-app1      - Run ui-app1 locally on port 3000"
+	@echo "  test-ui-app2      - Run ui-app2 locally on port 3001"
+	@echo "  test-all          - Run both apps locally"
+	@echo "  stop-test         - Stop test containers"
+	@echo "  dev               - Complete development setup"
+	@echo "  ps                - Show running containers"
+	@echo "  logs-ui-app1      - Show logs for ui-app1"
+	@echo "  logs-ui-app2      - Show logs for ui-app2"
+	@echo "  push-ui-app1      - Push ui-app1 to ECR"
+	@echo "  push-ui-app2      - Push ui-app2 to ECR"
+	@echo "  push-all          - Push both to ECR"
+	@echo "  clean             - Clean up local images"
+	@echo "  clean-all         - Remove all unused Docker images"
