@@ -6,6 +6,16 @@ output "bastion_public_ip" {
   value = var.endpoint_public_access == false ? aws_instance.bastion[0].public_ip : null
 }
 
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.vpc.vpc_id
+}
+
+output "private_subnet_ids" {
+  description = "List of private subnet IDs"
+  value       = module.vpc.private_subnet_ids
+}
+
 output "vpc_endpoints" {
   description = "VPC Endpoints for private ECR and S3 access"
   value = {
@@ -33,26 +43,6 @@ output "vpc_endpoints_security_group_id" {
 }
 
 # ECR Repository Outputs
-output "ecr_repositories" {
-  description = "ECR repository details"
-  value = {
-    for k, v in aws_ecr_repository.repositories : k => {
-      arn            = v.arn
-      registry_id    = v.registry_id
-      repository_url = v.repository_url
-      name           = v.name
-    }
-  }
-}
-
-output "ecr_repository_urls" {
-  description = "Map of repository names to URLs for easy access"
-  value = {
-    for k, v in aws_ecr_repository.repositories : k => v.repository_url
-  }
-}
-
-# Outputs for ECR repositories
 output "ecr_repositories" {
   description = "ECR repository details"
   value = {
