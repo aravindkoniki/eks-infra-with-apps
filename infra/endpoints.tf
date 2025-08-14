@@ -13,7 +13,7 @@ resource "aws_security_group" "vpc_endpoints" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -39,26 +39,6 @@ resource "aws_vpc_endpoint" "ecr_api" {
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:DescribeRepositories",
-          "ecr:DescribeImages",
-          "ecr:ListImages"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
   tags = merge({
     Name = "${var.name}-ecr-api-endpoint"
   }, var.tags)
@@ -74,21 +54,6 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "ecr:BatchGetImage",
-          "ecr:GetDownloadUrlForLayer"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
   tags = merge({
     Name = "${var.name}-ecr-dkr-endpoint"
   }, var.tags)
@@ -101,36 +66,6 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = module.vpc.private_route_table_ids
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:GetObjectVersion",
-          "s3:DeleteObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::*"
-        ]
-      },
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = [
-          "*"
-        ]
-      }
-    ]
-  })
 
   tags = merge({
     Name = "${var.name}-s3-endpoint"
@@ -147,23 +82,6 @@ resource "aws_vpc_endpoint" "logs" {
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
 
   tags = merge({
     Name = "${var.name}-logs-endpoint"
@@ -180,22 +98,6 @@ resource "aws_vpc_endpoint" "sts" {
   subnet_ids          = module.vpc.private_subnet_ids
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "sts:AssumeRole",
-          "sts:AssumeRoleWithWebIdentity",
-          "sts:GetCallerIdentity"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
 
   tags = merge({
     Name = "${var.name}-sts-endpoint"
