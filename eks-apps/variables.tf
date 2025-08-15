@@ -7,7 +7,7 @@
 variable "public_subnet_ids" {
   description = "List of public subnet IDs for the NLB"
   type        = list(string)
-  default     = ["subnet-08c2a5b60584f20f8", "subnet-0e172375aeb669ace", "subnet-0a4d43fc4e228b166"] # Example values, replace with actual subnet IDs
+  default     = ["subnet-00dac2ba66059dc0d", "subnet-07171230ce6f8800c", "subnet-0f6c519a406045aa8"] # Example values, replace with actual subnet IDs
 }
 
 variable "cluster_name" {

@@ -59,6 +59,21 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }, var.tags)
 }
 
+# Interface VPC Endpoint for S3 with custom configuration
+resource "aws_vpc_endpoint" "s3_interface" {
+  provider            = aws.MY_NETWORKING
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = false
+
+  tags = merge({
+    Name = "${var.name}-s3-interface-endpoint"
+  }, var.tags)
+}
+
 # Gateway VPC Endpoint for S3 (ECR stores image layers in S3)
 resource "aws_vpc_endpoint" "s3" {
   provider          = aws.MY_NETWORKING

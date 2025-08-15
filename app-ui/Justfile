@@ -25,6 +25,63 @@ get-ecr-uris:
 	@printf "ui-app1: " && (aws ecr describe-repositories --repository-names ui-app1 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING 2>/dev/null || echo 'Repository not found')
 	@printf "ui-app2: " && (aws ecr describe-repositories --repository-names ui-app2 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING 2>/dev/null || echo 'Repository not found')
 
+# List images in ECR repositories
+list-images:
+	@echo "Images in ui-app1:"
+	@aws ecr list-images --repository-name ui-app1 --region {{AWS_REGION}} --query 'imageIds[].{Tag:imageTag,Digest:imageDigest}' --output table --profile MY_NETWORKING 2>/dev/null || echo "No images found or repository doesn't exist"
+	@echo ""
+	@echo "Images in ui-app2:"
+	@aws ecr list-images --repository-name ui-app2 --region {{AWS_REGION}} --query 'imageIds[].{Tag:imageTag,Digest:imageDigest}' --output table --profile MY_NETWORKING 2>/dev/null || echo "No images found or repository doesn't exist"
+
+# Remove specific image by tag from ui-app1
+remove-image-ui-app1 TAG="latest":
+	@echo "Removing image with tag '{{TAG}}' from ui-app1..."
+	aws ecr batch-delete-image --repository-name ui-app1 --region {{AWS_REGION}} --image-ids imageTag={{TAG}} --profile MY_NETWORKING
+	@echo "Image removed from ui-app1"
+
+# Remove specific image by tag from ui-app2
+remove-image-ui-app2 TAG="latest":
+	@echo "Removing image with tag '{{TAG}}' from ui-app2..."
+	aws ecr batch-delete-image --repository-name ui-app2 --region {{AWS_REGION}} --image-ids imageTag={{TAG}} --profile MY_NETWORKING
+	@echo "Image removed from ui-app2"
+
+# Remove all images from ui-app1
+remove-all-images-ui-app1:
+	@echo "Removing all images from ui-app1..."
+	@echo "This will delete ALL images in ui-app1 repository!"
+	@echo "Press Ctrl+C to cancel, or press Enter to continue..."
+	@read dummy
+	@IMAGE_IDS=`aws ecr list-images --repository-name ui-app1 --region {{AWS_REGION}} --query 'imageIds' --output json --profile MY_NETWORKING` && \
+	if [ "$IMAGE_IDS" != "[]" ]; then \
+		aws ecr batch-delete-image --repository-name ui-app1 --region {{AWS_REGION}} --image-ids "$IMAGE_IDS" --profile MY_NETWORKING; \
+		echo "All images removed from ui-app1"; \
+	else \
+		echo "No images found in ui-app1"; \
+	fi
+
+# Remove all images from ui-app2
+remove-all-images-ui-app2:
+	@echo "Removing all images from ui-app2..."
+	@echo "This will delete ALL images in ui-app2 repository!"
+	@echo "Press Ctrl+C to cancel, or press Enter to continue..."
+	@read dummy
+	@IMAGE_IDS=`aws ecr list-images --repository-name ui-app2 --region {{AWS_REGION}} --query 'imageIds' --output json --profile MY_NETWORKING` && \
+	if [ "$IMAGE_IDS" != "[]" ]; then \
+		aws ecr batch-delete-image --repository-name ui-app2 --region {{AWS_REGION}} --image-ids "$IMAGE_IDS" --profile MY_NETWORKING; \
+		echo "All images removed from ui-app2"; \
+	else \
+		echo "No images found in ui-app2"; \
+	fi
+
+# Remove all images from both repositories
+remove-all-images:
+	@echo "Removing all images from both repositories..."
+	@echo "This will delete ALL images in both ui-app1 and ui-app2 repositories!"
+	@echo "Press Ctrl+C to cancel, or press Enter to continue..."
+	@read dummy
+	just remove-all-images-ui-app1
+	just remove-all-images-ui-app2
+
 # Delete ECR repositories (use with caution!)
 delete-ecr:
 	@echo "Deleting ECR repositories..."
@@ -102,14 +159,14 @@ curl-hostname-ui-app2:
 	curl http://localhost:3001/hostname
 
 # Tag and Push to ECR
-push-ui-app1: create-ecr login build-ui-app1
+push-ui-app1: login build-ui-app1
 	@echo "Pushing ui-app1 to ECR..."
 	@ECR_URI=`aws ecr describe-repositories --repository-names ui-app1 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING` && \
 	docker tag ui-app1:latest $ECR_URI:latest && \
 	docker push $ECR_URI:latest && \
 	echo "Successfully pushed to $ECR_URI:latest"
 
-push-ui-app2: create-ecr login build-ui-app2
+push-ui-app2: login build-ui-app2
 	@echo "Pushing ui-app2 to ECR..."
 	@ECR_URI=`aws ecr describe-repositories --repository-names ui-app2 --region {{AWS_REGION}} --query 'repositories[0].repositoryUri' --output text --profile MY_NETWORKING` && \
 	docker tag ui-app2:latest $ECR_URI:latest && \
@@ -155,25 +212,31 @@ dev: build-all test-all
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  create-ecr        - Create ECR repositories for ui-app1 and ui-app2"
-	@echo "  list-ecr          - List ECR repositories"
-	@echo "  get-ecr-uris      - Get ECR repository URIs"
-	@echo "  delete-ecr        - Delete ECR repositories (with confirmation)"
-	@echo "  delete-ecr-force  - Delete ECR repositories without confirmation"
-	@echo "  login             - Login to AWS ECR"
-	@echo "  build-ui-app1     - Build ui-app1 Docker image"
-	@echo "  build-ui-app2     - Build ui-app2 Docker image"
-	@echo "  build-all         - Build both images"
-	@echo "  test-ui-app1      - Run ui-app1 locally on port 3000"
-	@echo "  test-ui-app2      - Run ui-app2 locally on port 3001"
-	@echo "  test-all          - Run both apps locally"
-	@echo "  stop-test         - Stop test containers"
-	@echo "  dev               - Complete development setup"
-	@echo "  ps                - Show running containers"
-	@echo "  logs-ui-app1      - Show logs for ui-app1"
-	@echo "  logs-ui-app2      - Show logs for ui-app2"
-	@echo "  push-ui-app1      - Push ui-app1 to ECR"
-	@echo "  push-ui-app2      - Push ui-app2 to ECR"
-	@echo "  push-all          - Push both to ECR"
-	@echo "  clean             - Clean up local images"
-	@echo "  clean-all         - Remove all unused Docker images"
+	@echo "  create-ecr             - Create ECR repositories for ui-app1 and ui-app2"
+	@echo "  list-ecr               - List ECR repositories"
+	@echo "  get-ecr-uris           - Get ECR repository URIs"
+	@echo "  list-images            - List images in ECR repositories"
+	@echo "  remove-image-ui-app1   - Remove specific image from ui-app1 (TAG=tag)"
+	@echo "  remove-image-ui-app2   - Remove specific image from ui-app2 (TAG=tag)"
+	@echo "  remove-all-images-ui-app1 - Remove all images from ui-app1"
+	@echo "  remove-all-images-ui-app2 - Remove all images from ui-app2"
+	@echo "  remove-all-images      - Remove all images from both repositories"
+	@echo "  delete-ecr             - Delete ECR repositories (with confirmation)"
+	@echo "  delete-ecr-force       - Delete ECR repositories without confirmation"
+	@echo "  login                  - Login to AWS ECR"
+	@echo "  build-ui-app1          - Build ui-app1 Docker image"
+	@echo "  build-ui-app2          - Build ui-app2 Docker image"
+	@echo "  build-all              - Build both images"
+	@echo "  test-ui-app1           - Run ui-app1 locally on port 3000"
+	@echo "  test-ui-app2           - Run ui-app2 locally on port 3001"
+	@echo "  test-all               - Run both apps locally"
+	@echo "  stop-test              - Stop test containers"
+	@echo "  dev                    - Complete development setup"
+	@echo "  ps                     - Show running containers"
+	@echo "  logs-ui-app1           - Show logs for ui-app1"
+	@echo "  logs-ui-app2           - Show logs for ui-app2"
+	@echo "  push-ui-app1           - Push ui-app1 to ECR"
+	@echo "  push-ui-app2           - Push ui-app2 to ECR"
+	@echo "  push-all               - Push both to ECR"
+	@echo "  clean                  - Clean up local images"
+	@echo "  clean-all              - Remove all unused Docker images"
