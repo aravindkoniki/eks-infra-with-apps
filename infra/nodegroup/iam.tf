@@ -40,7 +40,9 @@ resource "aws_iam_policy" "ecr_policy" {
           "ecr:BatchGetImage",
           "ecr:DescribeRepositories",
           "ecr:DescribeImages",
-          "ecr:ListImages"
+          "ecr:ListImages",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:GetAuthorizationToken"
         ]
         Resource = ["*"]
       }
