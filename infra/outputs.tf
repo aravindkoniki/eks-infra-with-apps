@@ -16,6 +16,11 @@ output "private_subnet_ids" {
   value       = module.vpc.private_subnet_ids
 }
 
+output "public_subnet_ids" {
+  description = "List of private subnet IDs"
+  value       = module.vpc.public_subnet_ids
+}
+
 output "vpc_endpoints" {
   description = "VPC Endpoints for private ECR and S3 access"
   value = {

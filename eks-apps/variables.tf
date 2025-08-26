@@ -4,12 +4,6 @@
 #   default     = "~/.kube/config"
 # }
 
-variable "public_subnet_ids" {
-  description = "List of public subnet IDs for the NLB"
-  type        = list(string)
-  default     = ["subnet-00dac2ba66059dc0d", "subnet-07171230ce6f8800c", "subnet-0f6c519a406045aa8"] # Example values, replace with actual subnet IDs
-}
-
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string

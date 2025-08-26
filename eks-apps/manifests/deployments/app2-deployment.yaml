@@ -26,7 +26,7 @@ spec:
         - name: ui-app2
           image: 154697348611.dkr.ecr.eu-west-1.amazonaws.com/ui-app2:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           resources:
             requests:
@@ -55,4 +55,4 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: PORT
-              value: "80"
+              value: "8080"

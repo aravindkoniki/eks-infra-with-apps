@@ -10,7 +10,7 @@ resource "helm_release" "nginx_ingress" {
 
   values = [
     templatefile("${path.module}/helm/nginx/nginx-values.tpl.yaml", {
-      subnet_ids = join(",", var.public_subnet_ids)
+      subnet_ids = join(",", data.terraform_remote_state.network.outputs.public_subnet_ids)
     })
   ]
   timeout = 600
