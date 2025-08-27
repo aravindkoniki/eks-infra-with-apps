@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karpenter
+  namespace: karpenter
+  labels:
+    app: karpenter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: karpenter
+  template:
+    metadata:
+      labels:
+        app: karpenter
+    spec:
+      serviceAccountName: karpenter
+      containers:
+        - name: controller
+          image: public.ecr.aws/karpenter/karpenter:{{ karpenter_version }}
+          args:
+            - --cluster-name={{ cluster_name }}
+            - --cluster-endpoint={{ cluster_endpoint }}
+            - --instance-profile={{ karpenter_node_instance_profile }}
+          env:
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: karpenter-global-settings
+                  key: awsRegion
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      # Add any other required fields here
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: karpenter
+  namespace: karpenter
+  annotations:
+    eks.amazonaws.com/role-arn: {{ irsa_role_arn }}
