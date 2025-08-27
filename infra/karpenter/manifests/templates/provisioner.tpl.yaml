@@ -1,0 +1,26 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  constraints:
+    labels:
+      karpenter.sh/provisioner-name: default
+  provider:
+    instanceProfile: ${karpenter_node_instance_profile}
+  requirements:
+    - key: "kubernetes.io/arch"
+      operator: In
+      values: ["amd64"]
+    - key: "node.kubernetes.io/instance-type"
+      operator: In
+      values:
+%{ for t in instance_types ~}
+        - ${t}
+%{ endfor ~}
+  limits:
+    resources:
+      cpu: "2000"
+  ttlSecondsAfterEmpty: 300
+  consolidation:
+    enabled: true
