@@ -1,17 +1,27 @@
 # EKS Apps — NGINX Ingress with AWS NLB & Multi-Namespace Applications
+# EKS Apps — NGINX Ingress with AWS NLB & Multi-Namespace Applications
 
-This setup deploys:
-- **NGINX Ingress Controller** in Amazon EKS
-- **AWS Network Load Balancer (NLB)** (Internet-facing)
-- **Two sample applications** (`app1` & `app2`) each in their own namespace
-- Fully automated deployment with **Terraform** + Kubernetes **manifest files**
-- Support for **private EKS worker nodes** with **public NLB**
+## 📂 eks-apps Folder Overview
+
+This folder contains all Kubernetes and Terraform resources to deploy a production-grade, multi-namespace application stack on Amazon EKS. It includes:
+
+- **Helm charts** for NGINX Ingress Controller (with AWS NLB integration)
+- **Terraform** modules for EKS, NLB, Route53, and supporting AWS resources
+- **Kubernetes manifests** for deployments, services, namespaces, and ingress for two sample apps (`app1` and `app2`)
+- **Scripts** for automated deployment and testing
+
+### Folder Structure
+
+- `manifests/` — All Kubernetes YAMLs for deployments, services, ingress, and namespaces
+- `helm/` — Helm values/templates for NGINX Ingress
+- `scripts/` — Shell scripts for deployment and testing
+- `*.tf` — Terraform files for AWS infrastructure and Kubernetes resources
 
 ---
 
-## 📌 Traffic Flow
+## 📈 Network Traffic Flowchart
 
-```text
+```mermaid
 [ User Browser Request ]
           |
           v
@@ -35,165 +45,68 @@ This setup deploys:
           v
 [ Application Pods ]
   (app1 namespace / app2 namespace)
-
-
-⚙️ Terraform Usage
-
-Prerequisites
-	•	A running EKS cluster with:
-	•	Worker nodes in private subnets
-	•	At least one public subnet per AZ for the NLB
-	•	kubectl configured to connect to the cluster
-	•	terraform installed
-
-⸻
-
-Deploy
-
-cd eks-apps
-terraform init
-terraform apply -auto-approve
-
-Terraform will:
-	•	Deploy the NGINX ingress controller using the Helm provider.
-	•	Attach the NLB to public subnets.
-	•	Apply all Kubernetes manifests in the manifests/ directory.
-
-⸻
-
-🧠 Kubernetes Cluster Debug & Inspection Cheat Sheet
-
-This guide provides essential kubectl and helm commands to inspect and manage key components in your AWS EKS cluster, including nodes, pods, services, ingress, controllers, and load balancers.
-
-⸻
-
-📋 Table of Contents
-	•	Cluster Info
-	•	Nodes
-	•	Pods
-	•	Controllers (Deployments, ReplicaSets, DaemonSets)
-	•	Services
-	•	Ingress
-	•	Helm Releases
-	•	AWS Load Balancer Controller
-	•	Logs & Troubleshooting
-	•	Extras
-
-⸻
-
-📡 Cluster Info
-
-```sh
-kubectl config current-context           # Show current context (EKS cluster)
-kubectl version --short                 # Client and server versions
-kubectl cluster-info                    # Get cluster endpoints
-kubectl get namespaces                  # List all namespaces
 ```
 
-⸻
+---
 
-🧱 Nodes
+## 🔗 Connecting to Your EKS Cluster
 
 ```sh
-kubectl get nodes -o wide               # List all worker nodes with details
-kubectl describe node <node-name>      # Detailed info about a specific node
+# Update kubeconfig for your EKS cluster
+aws eks --region <region> update-kubeconfig --name <cluster-name> --profile <aws-profile>
+
+# Verify connection
+kubectl config current-context
+kubectl get nodes -o wide
+kubectl get namespaces
+kubectl cluster-info
 ```
 
-⸻
+---
 
-🚀 Pods
+## ✅ Verifying Deployments
 
 ```sh
-kubectl get pods -A                     # All pods in all namespaces
-kubectl get pods -n <namespace> -o wide# Pods in a specific namespace
+# Check all pods in all namespaces
+kubectl get pods -A -o wide
+
+# Check deployments, services, and ingress
+kubectl get deployments -A
+kubectl get svc -A
+kubectl get ingress -A
+
+# Check endpoints for services
+kubectl get endpoints -A
+
+# Check NGINX Ingress Controller
+kubectl get pods -n ingress-nginx
+kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+```
+
+---
+
+## 🛠️ Troubleshooting Commands
+
+```sh
+# Pod logs and status
 kubectl describe pod <pod-name> -n <namespace>
-kubectl logs <pod-name> -n <namespace> # Logs of a pod
+kubectl logs <pod-name> -n <namespace>
+
+# Service and endpoint issues
+kubectl describe svc <service-name> -n <namespace>
+kubectl get endpoints -n <namespace>
+
+# Ingress troubleshooting
+kubectl describe ingress <ingress-name> -n <namespace>
+
+# Events (sorted by time)
+kubectl get events -A --sort-by='.metadata.creationTimestamp'
+
+# Restart a deployment
+kubectl rollout restart deployment <name> -n <namespace>
+
+# Exec into a pod
 kubectl exec -it <pod-name> -n <namespace> -- /bin/sh
 ```
 
-⸻
-
-⚙️ Controllers
-
-🔹 Deployments
-
-```sh
-kubectl get deployments -A
-kubectl describe deployment <name> -n <namespace>
-```
-
-🔹 ReplicaSets
-
-```sh
-kubectl get rs -A
-```
-
-🔹 DaemonSets (e.g., NGINX Ingress Controller)
-
-```sh
-kubectl get daemonset -A
-kubectl describe daemonset <name> -n <namespace>
-```
-
-⸻
-
-🌐 Services
-
-```sh
-kubectl get svc -A                      # List all services
-kubectl describe svc <name> -n <namespace>
-kubectl get endpoints -n <namespace>   # Show service endpoints
-```
-
-⸻
-
-🌍 Ingress
-
-```sh
-kubectl get ingress -A                 # List all ingress rules
-kubectl describe ingress <name> -n <namespace>
-```
-
-⸻
-
-📦 Helm Releases
-
-```sh
-helm list -A                           # All Helm releases
-helm get values <release> -n <namespace>        # View configured values
-helm status <release> -n <namespace>            # Status of a Helm release
-```
-
-⸻
-
-🏗️ AWS Load Balancer Controller
-
-```sh
-kubectl get deployment -n kube-system                 # Check controller exists
-kubectl logs -f deployment/aws-load-balancer-controller -n kube-system
-```
-
-⸻
-
-🛠 Logs & Troubleshooting
-
-```sh
-kubectl logs <pod-name> -n <namespace>               # Pod logs
-kubectl describe <resource> <name> -n <namespace>    # Describe any resource
-kubectl get events -A --sort-by='.metadata.creationTimestamp'
-```
-
-⸻
-
-🧹 Extras & Maintenance
-
-```sh
-kubectl delete pod <name> -n <namespace>             # Force restart a pod
-kubectl rollout restart deployment <name> -n <namespace> # Restart deployment
-kubectl get all -n <namespace>                       # All resources in a namespace
-kubectl get svc,ingress,pods -n <namespace>          # Key components in one line
-```
-
-⸻
-
-![alt text](image.png)
+---
