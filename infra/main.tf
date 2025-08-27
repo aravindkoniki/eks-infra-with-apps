@@ -9,6 +9,7 @@ module "vpc" {
     "kubernetes.io/cluster/${var.name}" = "shared",
     "kubernetes.io/role/internal-elb"   = "1"
   }
+  tags = var.tags
 }
 
 module "eks_control_plane" {
@@ -22,6 +23,7 @@ module "eks_control_plane" {
   eks_version             = var.eks_version
   endpoint_public_access  = var.endpoint_public_access
   endpoint_private_access = false
+  tags                    = var.tags
 }
 
 module "eks_node_group" {
@@ -37,6 +39,7 @@ module "eks_node_group" {
   max_size           = 6
   instance_types     = ["t3.medium"]
   vpc_id             = module.vpc.vpc_id
+  tags               = var.tags
 }
 
 

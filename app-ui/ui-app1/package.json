@@ -1,0 +1,16 @@
+{
+  "name": "ui-app1",
+  "version": "1.0.0",
+  "description": "UI App 1 for EKS deployment",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

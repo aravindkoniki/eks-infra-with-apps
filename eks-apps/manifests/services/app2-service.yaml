@@ -1,12 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: app2-service
-  namespace: app2
+  name: ui-app2-service
+  namespace: ui-app2
+  labels:
+    app: ui-app2
+    service: ui-app2
 spec:
-  selector:
-    app: app2
+  type: ClusterIP
   ports:
     - port: 80
-      targetPort: 80
-  type: ClusterIP
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: ui-app2

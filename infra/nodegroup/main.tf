@@ -21,8 +21,8 @@ resource "aws_eks_node_group" "this" {
     max_unavailable = 1
   }
 
-  tags = {
+  tags = merge({
     Name                                        = var.node_group_name
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-  }
+  }, var.tags)
 }

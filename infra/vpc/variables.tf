@@ -24,5 +24,9 @@ variable "public_subnet_cidrs" {
 variable "subnet_tags" {
   description = "Tags to apply to the subnets"
   type        = map(string)
-  
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
 }

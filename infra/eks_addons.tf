@@ -4,6 +4,7 @@ resource "aws_eks_addon" "coredns" {
   addon_name                  = "coredns"
   resolve_conflicts_on_update = "OVERWRITE"
   depends_on                  = [module.eks_node_group]
+  tags                        = var.tags
 }
 
 resource "aws_eks_addon" "kube-proxy" {
@@ -11,6 +12,7 @@ resource "aws_eks_addon" "kube-proxy" {
   cluster_name                = data.aws_eks_cluster.this.name
   addon_name                  = "kube-proxy"
   resolve_conflicts_on_update = "OVERWRITE"
+  tags                        = var.tags
 }
 
 resource "aws_eks_addon" "vpc-cni" {
@@ -18,4 +20,5 @@ resource "aws_eks_addon" "vpc-cni" {
   cluster_name                = data.aws_eks_cluster.this.name
   addon_name                  = "vpc-cni"
   resolve_conflicts_on_update = "OVERWRITE"
+  tags                        = var.tags
 }

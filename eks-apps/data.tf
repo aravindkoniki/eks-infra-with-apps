@@ -29,3 +29,10 @@ data "aws_lb" "nlb" {
   provider = aws.MY_NETWORKING
   name     = regex("^[^-]+", data.kubernetes_service.nginx_ingress.status[0].load_balancer[0].ingress[0].hostname)
 }
+
+data "terraform_remote_state" "network" {
+  backend = "local"
+  config = {
+    path = "../infra/terraform.tfstate"
+  }
+}

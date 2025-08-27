@@ -15,6 +15,10 @@ data "tls_certificate" "eks_oidc" {
   url = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
 
+# Data source to get current AWS account ID
+data "aws_caller_identity" "current" {
+  provider = aws.MY_NETWORKING
+}
 
 # Get latest Amazon Linux 2 AMI
 data "aws_ami" "amazon_linux" {
