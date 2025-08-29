@@ -5,9 +5,14 @@ module "vpc" {
   source = "./vpc"
   name   = var.name
   region = var.region
-  subnet_tags = {
-    "kubernetes.io/cluster/${var.name}" = "shared",
-    "kubernetes.io/role/internal-elb"   = "1"
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${var.name}"  = "owned"
+    "kubernetes.io/role/internal-elb"    = "1"
+    "karpenter.sh/discovery/${var.name}" = "${var.name}"
+  }
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${var.name}" = "owned"
+    "kubernetes.io/role/elb"            = "1"
   }
   tags = var.tags
 }

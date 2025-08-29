@@ -3,19 +3,6 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "subnet_ids" {
-  description = "List of subnets where Karpenter should launch nodes (prefer private subnets)"
-  type        = list(string)
-  default     = []
-}
-
-variable "security_group_ids" {
-  description = "Security groups to attach to instances launched by Karpenter"
-  type        = list(string)
-  default     = []
-  
-}
-
 variable "region" {
   description = "AWS region"
   type        = string
@@ -48,7 +35,7 @@ variable "karpenter_discovery_tag" {
 variable "instance_types" {
   description = "Preferred instance types for Karpenter provisioner (comma-separated in manifest templating)"
   type        = list(string)
-  default     = ["t3.medium","t3.large"]
+  default     = ["t3.medium", "t3.large"]
 }
 
 variable "ami_family" {

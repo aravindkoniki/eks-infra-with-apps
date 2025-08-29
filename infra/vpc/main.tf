@@ -16,7 +16,7 @@ resource "aws_subnet" "private" {
   cidr_block              = var.private_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
-  tags = merge(var.subnet_tags, {
+  tags = merge(var.private_subnet_tags, {
     Name = "${var.name}-private-${count.index + 1}"
   }, var.tags)
 }
@@ -28,7 +28,7 @@ resource "aws_subnet" "public" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  tags = merge({
+  tags = merge(var.public_subnet_tags, {
     Name = "${var.name}-public-${count.index + 1}"
   }, var.tags)
 }
