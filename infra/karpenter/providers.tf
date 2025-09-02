@@ -1,13 +1,6 @@
 # Use AWS provider from root module (inherit). If you need explicit provider config, add here.
 
-# Read cluster info
-data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
-}
 
-data "aws_eks_cluster_auth" "cluster" {
-  name = var.cluster_name
-}
 
 # Kubernetes provider (token-based)
 provider "kubernetes" {
@@ -24,3 +17,4 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
+ 

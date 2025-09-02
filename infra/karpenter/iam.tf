@@ -5,8 +5,8 @@ resource "aws_iam_role" "karpenter_controller" {
 }
 
 resource "aws_iam_policy" "karpenter_controller_policy" {
-  name   = "${var.cluster_name}-karpenter-controller-policy"
-  policy = data.aws_iam_policy_document.karpenter_controller_policy.json
+  name     = "${var.cluster_name}-karpenter-controller-policy"
+  policy   = data.aws_iam_policy_document.karpenter_controller_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "karpenter_controller_attach" {
@@ -16,7 +16,7 @@ resource "aws_iam_role_policy_attachment" "karpenter_controller_attach" {
 
 # Node Role for instances launched by Karpenter
 resource "aws_iam_role" "karpenter_node" {
-  name = "${var.cluster_name}-karpenter-node"
+  name     = "${var.cluster_name}-karpenter-node"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -91,8 +91,8 @@ resource "aws_iam_role_policy_attachment" "ecr_policy_attachment" {
 
 
 resource "aws_iam_instance_profile" "karpenter_node_profile" {
-  name = "${var.cluster_name}-karpenter-node-profile"
-  role = aws_iam_role.karpenter_node.name
-  tags = var.tags
+  name     = "${var.cluster_name}-karpenter-node-profile"
+  role     = aws_iam_role.karpenter_node.name
+  tags     = var.tags
 }
 

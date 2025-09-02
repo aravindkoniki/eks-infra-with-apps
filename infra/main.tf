@@ -47,7 +47,6 @@ module "eks_node_group" {
   tags               = var.tags
 }
 
-
 resource "kubernetes_config_map_v1" "aws_auth" {
   metadata {
     name      = "aws-auth"
@@ -69,3 +68,14 @@ resource "kubernetes_config_map_v1" "aws_auth" {
     ])
   }
 }
+
+# module "karpenter" {
+#   providers = {
+#     aws = aws.MY_NETWORKING
+#   }
+#   source            = "./karpenter"
+#   region            = var.region
+#   cluster_name      = var.name
+#   oidc_provider_arn = module.eks_control_plane.oidc_provider_arn
+#   tags              = var.tags
+# }

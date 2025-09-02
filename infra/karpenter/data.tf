@@ -1,3 +1,13 @@
+# Read cluster info
+data "aws_eks_cluster" "cluster" {
+  name     = var.cluster_name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name     = var.cluster_name
+}
+
+
 # IRSA assume role policy
 data "aws_iam_policy_document" "karpenter_assume_role" {
   statement {
@@ -11,7 +21,7 @@ data "aws_iam_policy_document" "karpenter_assume_role" {
 
     condition {
       test     = "StringEquals"
-      variable = replace(var.oidc_provider_arn, "/oidc-provider/", "") + ":sub"
+      variable = "${replace(var.oidc_provider_arn, "/oidc-provider/", "")}:sub"
       # allow only the karpenter service account in the karpenter namespace
       values = ["system:serviceaccount:karpenter:karpenter"]
     }

@@ -6,7 +6,6 @@ variable "cluster_name" {
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
 }
 
 variable "oidc_provider_arn" {

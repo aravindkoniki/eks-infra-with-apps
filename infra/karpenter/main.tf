@@ -12,36 +12,18 @@ resource "kubernetes_manifest" "ec2nodeclass" {
     }
     spec = {
       amiFamily = var.ami_family
-      subnetSelectorTerms = (
-        length(var.subnet_ids) > 0 ?
-        [
-          {
-            ids = var.subnet_ids
-          }
-        ] :
-        [
-          {
-            tags = {
-              "${local.discovery_tag_key}" = local.discovery_tag_value
-            }
-          }
-        ]
-      )
-      securityGroupSelectorTerms = (
-        length(var.security_group_ids) > 0 ?
-        [
-          {
-            ids = var.security_group_ids
-          }
-        ] :
-        [
-          {
-            tags = {
-              "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-            }
-          }
-        ]
-      )
+      subnetSelectorTerms = [
+        {
+          ids  = length(var.subnet_ids) > 0 ? var.subnet_ids : null
+          tags = length(var.subnet_ids) == 0 ? { (local.discovery_tag_key) = local.discovery_tag_value } : null
+        }
+      ]
+      securityGroupSelectorTerms = [
+        {
+          ids  = length(var.security_group_ids) > 0 ? var.security_group_ids : null
+          tags = length(var.security_group_ids) == 0 ? { "kubernetes.io/cluster/${var.cluster_name}" = "owned" } : null
+        }
+      ]
       metadataOptions = {
         httpEndpoint = "enabled"
         httpTokens   = "required"
