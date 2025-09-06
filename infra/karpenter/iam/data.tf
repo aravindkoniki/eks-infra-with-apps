@@ -1,13 +1,3 @@
-# Read cluster info
-data "aws_eks_cluster" "cluster" {
-  name     = var.cluster_name
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name     = var.cluster_name
-}
-
-
 # IRSA assume role policy
 data "aws_iam_policy_document" "karpenter_assume_role" {
   statement {

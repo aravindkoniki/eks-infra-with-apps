@@ -4,12 +4,6 @@ controller:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: ${irsa_role_arn}
-  nodeSelector:
-    karpenter.sh/discovery: ${cluster_name}
-  tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Exists"
-
 settings:
   aws:
     defaultInstanceProfile: ${karpenter_node_instance_profile}

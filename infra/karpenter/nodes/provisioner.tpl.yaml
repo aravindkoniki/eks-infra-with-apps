@@ -1,0 +1,33 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: "node.kubernetes.io/instance-type"
+      operator: In
+      values: ["t3.medium", "t3.large"]
+    - key: "kubernetes.io/arch"
+      operator: In
+      values: ["amd64"]
+    - key: "kubernetes.io/os"
+      operator: In
+      values: ["linux"]
+    - key: "karpenter.sh/capacity-type"
+      operator: In
+      values: ["spot", "on-demand"]
+  limits:
+    resources:
+      cpu: "2000"
+  providerRef:
+    name: karpenter-ec2-default
+  ttlSecondsAfterEmpty: 300
+  ttlSecondsUntilExpired: 604800 # 7 days
+  consolidation:
+    enabled: true
+  labels:
+    provisioner: default
+  taints:
+    - key: "example.com/special-workload"
+      value: "true"
+      effect: "NoSchedule"
