@@ -4,6 +4,15 @@ controller:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: ${irsa_role_arn}
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
 settings:
   aws:
     defaultInstanceProfile: ${karpenter_node_instance_profile}
+    interruptionQueue: ${sqs_queue_arn}
+  isolatedVPC: false

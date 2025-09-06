@@ -1,3 +1,8 @@
+resource "aws_sqs_queue" "karpenter_interruption" {
+  name = "karpenter-interruption-queue"
+  visibility_timeout_seconds = 60
+  message_retention_seconds  = 86400
+}
 
 resource "aws_iam_role" "karpenter_controller" {
   name               = "${var.cluster_name}-karpenter-controller"

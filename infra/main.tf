@@ -79,3 +79,25 @@ resource "kubernetes_config_map_v1" "aws_auth" {
 #   oidc_provider_arn = module.eks_control_plane.oidc_provider_arn
 #   tags              = var.tags
 # }
+
+module "karpenter_iam" {
+  providers = {
+    aws = aws.MY_NETWORKING
+  }
+  source            = "./karpenter/iam"
+  cluster_name      = var.name
+  oidc_provider_arn = module.eks_control_plane.oidc_provider_arn
+  tags              = var.tags
+}
+
+module "karpenter_helm" {
+  providers = {
+    aws = aws.MY_NETWORKING
+  }
+  source                          = "./karpenter/controller"
+  cluster_name                    = var.name
+  cluster_endpoint                = module.eks_control_plane.cluster_endpoint
+  irsa_role_arn                   = module.karpenter_iam.karpenter_controller_role_arn
+  karpenter_node_instance_profile = module.karpenter_iam.karpenter_node_instance_profile_name
+  depends_on                      = [module.karpenter_iam]
+}
